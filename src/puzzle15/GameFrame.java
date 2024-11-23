@@ -5,9 +5,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.text.DecimalFormat;
+import java.util.HashMap;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
@@ -20,8 +22,13 @@ public class GameFrame extends JFrame implements MouseListener{
 	private int GRID_WIDTH = 128; //マスの横幅
 	private int GRID_HEIGTH = 128; //マスの縦幅
 	private int frameSizeX = 512; //フレームの横サイズ
-	private int frameSizeY = 612; //フレームの縦サイズ
+	private int frameSizeY = 712; //フレームの縦サイズ
 	private String gara = "ぷにる"; //絵柄
+	private Integer imageNo = 0; //画像番号
+	private HashMap<String, Integer> imgMap = new HashMap<>(){{
+	    put("すうじ", 0);
+	    put("ぷにる", 1);
+	}};// 画像番号の選択肢
 	
 	private static int gameFlg; //ゲーム状態フラグ
 	private static GridInfo GInfo; //グリッドクラス
@@ -55,7 +62,7 @@ public class GameFrame extends JFrame implements MouseListener{
 		for(int y=0; y<GRID_Y; y++) {
 			for(int x=0; x<GRID_X; x++) {
 				if(GInfo.getTileNum(x, y) != 0) {
-					label1[GInfo.getTileNum(x, y)].setBounds(x*GRID_WIDTH, y*GRID_HEIGTH, GRID_WIDTH, GRID_HEIGTH);
+					label1[GInfo.getTileNum(x, y)].setBounds(x*GRID_WIDTH, y*GRID_HEIGTH+100, GRID_WIDTH, GRID_HEIGTH);
 				}
 			}
 		}
@@ -67,7 +74,7 @@ public class GameFrame extends JFrame implements MouseListener{
 		
 		//選択ボタンの設定
 		JButton button = new JButton(gara);
-		button.setBounds(10, frameSizeX+10, 100, 50);
+		button.setBounds(10, frameSizeX+110, 100, 50);
 		button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(gara=="ぷにる") {
@@ -101,7 +108,28 @@ public class GameFrame extends JFrame implements MouseListener{
 			
 		});
 		this.getContentPane().add(button); 
+		
+		//プルダウンの設定
+		// プルダウンメニュー（JComboBox）の作成
+        JComboBox<String> comboBox = new JComboBox<>(imgMap.keySet().toArray(new String[0]));  // 選択肢を渡してプルダウンを作成
+        comboBox.setBounds(10, 10, 150, 30);  // プルダウンの位置とサイズを設定
+
+        // プルダウンの選択が変わったときの動作を設定
+        comboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //Integer selectedNo = (Integer) comboBox.getSelectedItem();  // 選択された項目を取得
+                String selectedLabel = (String) comboBox.getSelectedItem(); // 表示用文字列を取得
+                Integer selectedId = imgMap.get(selectedLabel); 
+                imageNo = selectedId;
+                System.out.println("選択された項目: " + imageNo);
+            }
+        });
+        // フレームにプルダウンを追加
+        this.setLayout(null);  // 自由に配置できるようにレイアウトを無効化
+        this.add(comboBox);  // プルダウンを追加
 	}
+	
 	//ゲーム初期化メソッド
 	public void gameInit() {
 		//GInfo.shfleTile();
@@ -125,7 +153,7 @@ public class GameFrame extends JFrame implements MouseListener{
 			case GAME_ING:
 				//クリックしたマスを取得
 				clickTileX = (int)(e.getX() / GRID_WIDTH);
-				clickTileY = (int)(e.getY() / GRID_HEIGTH);
+				clickTileY = (int)((e.getY()-100)/ GRID_HEIGTH);
 				System.out.println(clickTileX +clickTileY );
 				//コマを移動させる。
 				blnRet = GInfo.moveTile(clickTileX, clickTileY);
@@ -135,7 +163,7 @@ public class GameFrame extends JFrame implements MouseListener{
 		for(int y=0; y<GRID_Y; y++) {
 			for(int x=0; x<GRID_X; x++) {
 				if(GInfo.getTileNum(x, y) != 0) {
-					label1[GInfo.getTileNum(x, y)].setBounds(x*GRID_WIDTH, y*GRID_HEIGTH, GRID_WIDTH, GRID_HEIGTH);
+					label1[GInfo.getTileNum(x, y)].setBounds(x*GRID_WIDTH, y*GRID_HEIGTH+100, GRID_WIDTH, GRID_HEIGTH);
 				}
 			}
 		}
