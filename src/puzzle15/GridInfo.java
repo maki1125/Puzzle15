@@ -18,12 +18,22 @@ public class GridInfo{
 		for(int y=0; y<gridYNum; y++) {
 			for(int x=0; x<gridXNum; x++) {
 				gridFlg[y][x] = y*gridYNum + x + 1;
-
 			}
 		}
 		//右下のマスにはこまがないことを意味する-1を格納
 		gridFlg[gridYNum-1][gridXNum-1] = 0;
 		//shfleTile();
+	}
+	//コマの位置を初期値に戻すメソッド
+	public void clearTile() {
+		//1~15を格納
+		for(int y=0; y<gridYNum; y++) {
+			for(int x=0; x<gridXNum; x++) {
+				gridFlg[y][x] = y*gridYNum + x + 1;
+			}
+		}
+		//右下のマスにはこまがないことを意味する-1を格納
+		gridFlg[gridYNum-1][gridXNum-1] = 0;
 	}
 	
 	//コマを開いているマスに移動させるメソッド
