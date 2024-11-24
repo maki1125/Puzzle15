@@ -23,7 +23,7 @@ public class GameFrame extends JFrame implements MouseListener{
 	private int GRID_HEIGTH = 128; //マスの縦幅
 	private int frameSizeX = 512; //フレームの横サイズ
 	private int frameSizeY = 712; //フレームの縦サイズ
-	private String gara = "ぷにる"; //絵柄
+	//private String gara = "ぷにる"; //絵柄
 	private Integer imageNo = 0; //画像番号
 	private HashMap<String, Integer> imgMap = new HashMap<>(){{
 	    put("すうじ", 0);
@@ -31,81 +31,33 @@ public class GameFrame extends JFrame implements MouseListener{
 	}};// 画像番号の選択肢
 	
 	private static int gameFlg; //ゲーム状態フラグ
-	private static GridInfo GInfo; //グリッドクラス
-	private static ImageIcon tileImage1[]; //マスの画像を保存する配列（ぷにる）
-	private static JLabel label1[]; //マスの画像を貼り付けるラベルの配列（ぷにる）
-	private static ImageIcon tileImage2[]; //マスの画像を保存する配列(数字）
-	private static JLabel label2[]; //マスの画像を貼り付けるラベルの配列（数字）
+	private static GridInfo GInfo = new GridInfo(GRID_X, GRID_Y);; //グリッドクラス
+	private static ImageIcon tileImage[] = new ImageIcon[GRID_X * GRID_Y + 1];; //マスの画像を保存する配列（ぷにる）
+	private static JLabel label[] = new JLabel[GRID_X * GRID_Y + 1]; ; //マスの画像を貼り付けるラベルの配列（ぷにる）
+	//private static ImageIcon tileImage2[]; //マスの画像を保存する配列(数字）
+	//private static JLabel label2[]; //マスの画像を貼り付けるラベルの配列（数字）
+	
+	
 	
 	//コンストラクタ
 	GameFrame(){
-		GInfo = new GridInfo(GRID_X, GRID_Y);
-		tileImage1 = new ImageIcon[GRID_X * GRID_Y + 1]; //なぜ＋１？
-		label1 = new JLabel[GRID_X * GRID_Y + 1]; //なぜ＋１？
-		tileImage2 = new ImageIcon[GRID_X * GRID_Y + 1]; //なぜ＋１？
-		label2 = new JLabel[GRID_X * GRID_Y + 1]; //なぜ＋１？
-		
-		//1~15までのコマの画像を読み込み
-		DecimalFormat decimalFormat = new DecimalFormat("00");
-		for(int i = 1; i<GRID_X * GRID_Y; i++) {
-			tileImage1[i] = new ImageIcon("puni_img/"+decimalFormat.format(i)+".png");
-			label1[i] = new JLabel(tileImage1[i]);
-			this.getContentPane().add(label1[i]); //フレームにラベルを追加
-		}
-		for(int i = 1; i<GRID_X * GRID_Y; i++) {
-			tileImage2[i] = new ImageIcon("img/"+decimalFormat.format(i)+".gif");
-			label2[i] = new JLabel(tileImage2[i]);
-			this.getContentPane().add(label2[i]); //フレームにラベルを追加
-		}
-		
-		//1~15までのコマをボード上に配置
-		for(int y=0; y<GRID_Y; y++) {
-			for(int x=0; x<GRID_X; x++) {
-				if(GInfo.getTileNum(x, y) != 0) {
-					label1[GInfo.getTileNum(x, y)].setBounds(x*GRID_WIDTH, y*GRID_HEIGTH+100, GRID_WIDTH, GRID_HEIGTH);
-				}
-			}
-		}
+		//マスの表示
+		imgReadDisp(imageNo);
 		
 		//マウスイベントの取得を開始
 		this.getContentPane().addMouseListener(this);
 		this.setTitle("Puzzle15");
 		this.setSize(frameSizeX, frameSizeY);
 		
-		//選択ボタンの設定
-		JButton button = new JButton(gara);
-		button.setBounds(10, frameSizeX+110, 100, 50);
+		//スタートボタンの設定
+		JButton button = new JButton("すたーと");
+		button.setBounds(200, 10, 100, 50);
 		button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(gara=="ぷにる") {
-					gara = "すうじ";
-					GRID_WIDTH = 64; //マスの横幅
-					GRID_HEIGTH = 64; //マスの縦幅
-					//描写
-					for(int y=0; y<GRID_Y; y++) {
-						for(int x=0; x<GRID_X; x++) {
-							getContentPane().remove(label1[GInfo.getTileNum(x, y)]);
-							if(GInfo.getTileNum(x, y) != 0) {
-								label2[GInfo.getTileNum(x, y)].setBounds(x*GRID_WIDTH, y*GRID_HEIGTH, GRID_WIDTH, GRID_HEIGTH);
-							}
-						}
-					}
-				}else {
-					gara = "ぷにる";
-					GRID_WIDTH = 128; //マスの横幅
-					GRID_HEIGTH = 128; //マスの縦幅
-					//描写
-					for(int y=0; y<GRID_Y; y++) {
-						for(int x=0; x<GRID_X; x++) {
-							if(GInfo.getTileNum(x, y) != 0) {
-								label1[GInfo.getTileNum(x, y)].setBounds(x*GRID_WIDTH, y*GRID_HEIGTH, GRID_WIDTH, GRID_HEIGTH);
-							}
-						}
-					}
-				}
-				button.setText(gara);
+				imgReadDisp(imageNo);
+				System.out.println("スタートボタンを押しました。"+imageNo);
+				GInfo.shfleTile();
 			}
-			
 		});
 		this.getContentPane().add(button); 
 		
@@ -135,6 +87,45 @@ public class GameFrame extends JFrame implements MouseListener{
 		//GInfo.shfleTile();
 		gameFlg = GAME_ING;
 	}
+	//画像を読みこんで表示
+	public void imgReadDisp(Integer imageNo) {
+		
+		// 1~15までのラベルをクリア（対象のラベルのみ）
+	    for (int i = 1; i < GRID_X * GRID_Y; i++) {
+	        if (label[i] != null) {
+	            this.getContentPane().remove(label[i]); // ラベルを削除
+	            label[i] = null; // 配列もクリア
+	        }
+	    }
+	    
+		//1~15までのコマの画像を読み込み
+		DecimalFormat decimalFormat = new DecimalFormat("00");
+		for(int i = 1; i<GRID_X * GRID_Y; i++) {
+			tileImage[i] = new ImageIcon("img"+imageNo+"/"+decimalFormat.format(i)+".png");
+			label[i] = new JLabel(tileImage[i]);
+			this.getContentPane().add(label[i]); //フレームにラベルを追加
+		}
+		
+		//1~15までのコマをボード上に配置
+		for(int y=0; y<GRID_Y; y++) {
+			for(int x=0; x<GRID_X; x++) {
+				if(GInfo.getTileNum(x, y) != 0) {
+					label[GInfo.getTileNum(x, y)].setBounds(x*GRID_WIDTH, y*GRID_HEIGTH+100, GRID_WIDTH, GRID_HEIGTH);
+				}
+			}
+		}
+		//描写
+		for(int y=0; y<GRID_Y; y++) {
+			for(int x=0; x<GRID_X; x++) {
+				if(GInfo.getTileNum(x, y) != 0) {
+					label[GInfo.getTileNum(x, y)].setBounds(x*GRID_WIDTH, y*GRID_HEIGTH+100, GRID_WIDTH, GRID_HEIGTH);
+				}
+			}
+		}
+		// コンポーネントを再描画
+	    this.getContentPane().revalidate();
+	    this.getContentPane().repaint();
+	}
 	
 	//クリックイベントの設定
 	public void mouseClicked(MouseEvent e) {}
@@ -163,7 +154,7 @@ public class GameFrame extends JFrame implements MouseListener{
 		for(int y=0; y<GRID_Y; y++) {
 			for(int x=0; x<GRID_X; x++) {
 				if(GInfo.getTileNum(x, y) != 0) {
-					label1[GInfo.getTileNum(x, y)].setBounds(x*GRID_WIDTH, y*GRID_HEIGTH+100, GRID_WIDTH, GRID_HEIGTH);
+					label[GInfo.getTileNum(x, y)].setBounds(x*GRID_WIDTH, y*GRID_HEIGTH+100, GRID_WIDTH, GRID_HEIGTH);
 				}
 			}
 		}
