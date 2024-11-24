@@ -30,7 +30,7 @@ public class GameFrame extends JFrame implements MouseListener{
 	    put("ぷにる", 1);
 	}};// 画像番号の選択肢
 	
-	private static int gameFlg; //ゲーム状態フラグ
+	private static int gameFlg = GAME_ING; //ゲーム状態フラグ
 	private static GridInfo GInfo = new GridInfo(GRID_X, GRID_Y);; //グリッドクラス
 	private static ImageIcon tileImage[] = new ImageIcon[GRID_X * GRID_Y + 1];; //マスの画像を保存する配列（ぷにる）
 	private static JLabel label[] = new JLabel[GRID_X * GRID_Y + 1]; ; //マスの画像を貼り付けるラベルの配列（ぷにる）
@@ -54,12 +54,25 @@ public class GameFrame extends JFrame implements MouseListener{
 		button.setBounds(200, 10, 100, 50);
 		button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				GInfo.shfleTile();
 				imgReadDisp(imageNo);
 				System.out.println("スタートボタンを押しました。"+imageNo);
-				GInfo.shfleTile();
+				
 			}
 		});
 		this.getContentPane().add(button); 
+		
+		//くりあボタンの設定
+		JButton button2 = new JButton("くりあ");
+		button2.setBounds(350, 10, 100, 50);
+		button2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				GInfo.clearTile();
+				imgReadDisp(imageNo);
+			}
+		});
+		this.getContentPane().add(button2); 
+		
 		
 		//プルダウンの設定
 		// プルダウンメニュー（JComboBox）の作成
@@ -85,7 +98,7 @@ public class GameFrame extends JFrame implements MouseListener{
 	//ゲーム初期化メソッド
 	public void gameInit() {
 		//GInfo.shfleTile();
-		gameFlg = GAME_ING;
+		//gameFlg = GAME_ING;
 	}
 	//画像を読みこんで表示
 	public void imgReadDisp(Integer imageNo) {
@@ -137,7 +150,7 @@ public class GameFrame extends JFrame implements MouseListener{
 		switch(gameFlg) {
 			case GAME_WAIT:
 				System.out.println("GAME START");
-				gameInit();
+				//gameInit();
 				System.out.println(GInfo.getTileNum(3, 3));
 				
 				break;
