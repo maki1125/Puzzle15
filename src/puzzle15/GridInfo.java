@@ -38,7 +38,7 @@ public class GridInfo{
 	
 	//コマを開いているマスに移動させるメソッド
 	public boolean moveTile(int clickTileX, int clickTileY) {
-		System.out.println(clickTileX+","+clickTileY);
+		//System.out.println(clickTileX+","+clickTileY);
 		//右に動く
 		if(clickTileX+1<gridXNum && clickTileX>=0 && clickTileY>=0 && clickTileY < gridYNum) {
 		if(gridFlg[clickTileY][clickTileX+1]==0) {
@@ -70,13 +70,12 @@ public class GridInfo{
 		//下に動く
 		if(clickTileY+1<gridYNum && clickTileX>=0 && clickTileY>=0 && clickTileX < gridXNum) {
 		if(gridFlg[clickTileY+1][clickTileX]==0) {
-			System.out.println("下");
+			//System.out.println("下");
 			gridFlg[clickTileY+1][clickTileX]=gridFlg[clickTileY][clickTileX];
 			gridFlg[clickTileY][clickTileX]=0;
 			return true;
 		}
 		}
-		System.out.println("当てはまるのなし");
 		return false;
 	}
 	
@@ -108,7 +107,7 @@ public class GridInfo{
 		for(int i=0; i<200; i++) {
 			//こまが置かれていない座標を取得
 			empTile = getEmpGridNum();
-			System.out.println("コマなし"+empTile[0]+','+empTile[1]);
+			//System.out.println("コマなし"+empTile[0]+','+empTile[1]);
 			//0~3までの数値をランダムに取得
 			randNum = (int)(Math.random() * 4);
 			//コマを動かす
