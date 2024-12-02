@@ -13,7 +13,6 @@ import javax.imageio.ImageIO;
 public class ImgCut {
 	private static final int RSIZE_WIDTH = 512;
 	private static final int RSIZE_HEIGHT = 512;
-	public static boolean saveImgFlg=false;
 	public BufferedImage resizedImage;
 	
 	//画像をリサイズ、１６分割の線を書くクラス
@@ -56,7 +55,7 @@ public class ImgCut {
 		
 		try {			
             // コピー先のフォルダ
-            int size = GameFrame.imgMap.size(); //現在の登録数を取得
+            int size = Integer.valueOf(GameFrame.imgMap2.get(GameFrame.selectedLabel)); //現在の登録数を取得
             File saveFolder = new File("img/img" + size );
             // フォルダが存在しない場合は作成
             if (!saveFolder.exists()) {
@@ -68,10 +67,6 @@ public class ImgCut {
                     return;
                 }
             }
-
-          // 分割する行数と列数
-          int rows = GameFrame.GRID_X;
-          int cols = GameFrame.GRID_Y;
 
           // 各部分の幅と高さを計算
           int partWidth = RSIZE_WIDTH / GameFrame.GRID_X;
@@ -101,16 +96,12 @@ public class ImgCut {
                   ImageIO.write(subImage, "png", outputFile);
                   count++;
               }
-          }
-          
-          
-          
+          }     
           
 	      } catch (IOException e) {
 	          e.printStackTrace();
 	      }
 		
-		saveImgFlg = true;
         System.out.println("画像をリサイズして16分割に保存しました。");
 	}
 }

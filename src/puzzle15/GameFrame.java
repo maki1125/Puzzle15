@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
@@ -28,13 +29,18 @@ public class GameFrame extends JFrame implements MouseListener{
 	private static final int FRAME_SIZE_X = 512; //フレームの横サイズ
 	private static final int FRAME_SIZE_Y = 712; //フレームの縦サイズ
 	
-	private Integer imageNo = 0; //選択された画像番号
+	private Integer imageNo; //選択された画像番号
 	private DefaultComboBoxModel<String> comboBoxModel; //プルダウンの処理に使用
+	private JComboBox<String> comboBox; //プルダウン
     private String filePath = "pulldownData.txt";// プルダウンの中身のデータファイルパス
+    public static String selectedLabel; //現在選択しているプルダウンの表示
     public static ArrayList<String> imgMap = new ArrayList<>();//プルダウンの選択肢.他クラスでも使用。
+    public static LinkedHashMap<String, Integer> imgMap2 = new LinkedHashMap<>();
 	private static GridInfo GInfo = new GridInfo(GRID_X, GRID_Y);; //グリッドクラス
 	private static ImageIcon tileImage[] = new ImageIcon[GRID_X * GRID_Y + 1];; //マスの画像を保存する配列
 	private static JLabel label[] = new JLabel[GRID_X * GRID_Y + 1]; ; //マスの画像を貼り付けるラベルの配列
+	private NewImage newImage = new NewImage(); //新規画像登録のクラスをインスタンス化
+	private boolean skipComboboxUpdateFlg = false; //プルダウンの中身を更新をスキップするフラグ。
 
 	//コンストラクタ
 	GameFrame(){
@@ -46,8 +52,30 @@ public class GameFrame extends JFrame implements MouseListener{
 		this.getContentPane().setLayout(null);//レイアウトマネージャが無効となるので、位置やサイズの指定を行う必要あり。
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//閉じ方の設定
 		
+		//プルダウンの設定
+		readDatePdw();//プルダウンのデータ読み込み
+		comboBoxModel = new DefaultComboBoxModel<>(imgMap2.keySet().toArray(new String[0]));// プルダウンメニュー（JComboBox）の作成。imgMap変更時にプルダウンの内容を変更するためにDefaultComboBoxModelを使用する。
+		comboBox = new JComboBox<>(comboBoxModel); // モデルをセットしてプルダウン作成
+        comboBox.setBounds(10, 10, 150, 50);  // プルダウンの位置とサイズを設定
+        ////プルダウンの選択が変わったときの動作を設定
+        comboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	System.out.println("プルダウンの選択が変更されました。");
+            	if(!skipComboboxUpdateFlg) {//画像保存の時プルダウンの更新をするため選択が変更となるが、その時表示されているものに画像が変わると登録した画像が表示されなくなるため。
+            		System.out.println("画像保存ないので変更されたラベルに画像を変更します。");
+	            	selectedLabel = (String) comboBox.getSelectedItem(); // 表示用文字列を取得
+	            	imageNo = Integer.valueOf(imgMap2.get(selectedLabel)); //選択されたプルダウンの番号取得
+	                GInfo.clearTile(); //マスの位置の初期化
+					imgReadDisp(imageNo); //マスの表示
+            	}
+            }
+        });
+        this.add(comboBox);  // プルダウンを追加
+		        
 		//マスの表示
-		imgReadDisp(imageNo);
+		selectedLabel = GameFrame.imgMap2.keySet().iterator().next(); //最初の要素を初期の画像とする。
+		imgReadDisp(Integer.valueOf(imgMap2.get(selectedLabel))); //マスの表示
 		
 		//スタートボタンの設定
 		JButton button = new JButton("すたーと");
@@ -74,10 +102,10 @@ public class GameFrame extends JFrame implements MouseListener{
 		
 		//絵の新規登録ボタンの設定
 		JButton button3 = new JButton("あたらしいえをふやす");
-		button3.setBounds(10, 620, 200, 30);
+		button3.setBounds(10, 620, 200, 50);
 		button3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				NewImage newImage = new NewImage(); //新規画像登録のクラスをインスタンス化
+				
 				newImage.dialog(); //画像選択ダイアログの表示
 				
 				//画像を選択された時のみ処理実施
@@ -86,39 +114,37 @@ public class GameFrame extends JFrame implements MouseListener{
 					
 					//コールバックを設定。分割画像を保存したら以下処理を実行する。
 					newImage.setComp(() -> {
+						skipComboboxUpdateFlg=true;
 						System.out.println("新規画像にマスの表示を変更します。");
-						imageNo = imgMap.size()-1;
 						GInfo.clearTile(); //マスの位置の初期化
-						imgReadDisp(imageNo); //マスの表示
+						imgReadDisp(Integer.valueOf(imgMap2.get(selectedLabel))); //マスの表示
 						updateComboBox(); //プルダウンの表示の更新
-						ImgCut.saveImgFlg = false; //画像保存時のプルダウンの処理を分けているので、保存が終わったらフラグを落とす。
+						skipComboboxUpdateFlg=false;
 					});
 				}
 			}
 		});
 		this.getContentPane().add(button3); 
 		
-		//プルダウンの設定
-		readDatePdw();//プルダウンのデータ読み込み
-		comboBoxModel = new DefaultComboBoxModel<>(imgMap.toArray(new String[0]));// プルダウンメニュー（JComboBox）の作成。imgMap変更時にプルダウンの内容を変更するためにDefaultComboBoxModelを使用する。
-		JComboBox<String> comboBox = new JComboBox<>(comboBoxModel); // モデルをセットしてプルダウン作成
-        comboBox.setBounds(10, 10, 150, 30);  // プルダウンの位置とサイズを設定
-        ////プルダウンの選択が変わったときの動作を設定
-        comboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-            	System.out.println("プルダウンの選択が変更されました。");
-            	if(!ImgCut.saveImgFlg) {//画像保存の時プルダウンの更新をするため選択が変更となるが、その時表示されているものに画像が変わると登録した画像が表示されなくなるため。
-            		System.out.println("画像保存ないので変更されたラベルに画像を変更します。");
-	            	String selectedLabel = (String) comboBox.getSelectedItem(); // 表示用文字列を取得
-	            	imageNo = imgMap.indexOf(selectedLabel); //選択されたプルダウンの番号取得
-	                GInfo.clearTile(); //マスの位置の初期化
-					imgReadDisp(imageNo); //マスの表示
-            	}
-            }
-        });
-        this.add(comboBox);  // プルダウンを追加
-   
+		//絵の削除ボタンの設定
+		JButton button4 = new JButton("このえをさくじょする");
+		button4.setBounds(250, 620, 200, 50);
+		button4.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				skipComboboxUpdateFlg = true;
+				selectedLabel = (String) comboBox.getSelectedItem(); // 表示用文字列を取得
+				imageNo = Integer.valueOf(imgMap2.get(selectedLabel)); 
+				imgMap2.remove(GameFrame.selectedLabel); //プルダウンの選択肢の削除
+				newImage.deleteImg(imageNo);//画像の削除
+				selectedLabel = GameFrame.imgMap2.keySet().iterator().next(); //最初の要素を表示する。
+				GInfo.clearTile(); //マスの位置の初期化
+				imgReadDisp(Integer.valueOf(imgMap2.get(selectedLabel))); //マスの表示
+				updateComboBox(); //プルダウンの表示の更新
+				skipComboboxUpdateFlg = false; //画像保存時のプルダウンの処理を分けているので、保存が終わったらフラグを落とす。
+				
+			}
+		});
+		this.getContentPane().add(button4); 
 	}
 	
 	//プルダウンのデータの読み込みメソッド
@@ -128,7 +154,7 @@ public class GameFrame extends JFrame implements MouseListener{
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                    imgMap.add(line); // リストに追加
+            		imgMap2.put(line.split(",")[0], Integer.valueOf(line.split(",")[1]));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -138,10 +164,11 @@ public class GameFrame extends JFrame implements MouseListener{
 	//プルダウンの内容を更新するメソッド
 	public void updateComboBox() {
 	    comboBoxModel.removeAllElements(); // 既存の項目を削除
-	    for (String key : imgMap) {
+	    for (String key : imgMap2.keySet()) {
 	        comboBoxModel.addElement(key); // 新しい項目を追加
 	    }
-	    comboBoxModel.setSelectedItem(imgMap.get(imageNo));
+	    comboBoxModel.setSelectedItem(selectedLabel);
+	    
 	}
 	
 	//画像を読みこんで表示

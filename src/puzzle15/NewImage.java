@@ -9,6 +9,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -26,6 +27,7 @@ public class NewImage extends JDialog{
 	public String filename2; //.以下を除いたファイル名。プルダウンの選択肢に使う。
 	public String directory; // 選択されたディレクトリ
 	public File selectedFile;
+	public File deleteFolder; //削除するフォルダ
 	private ImgCut ic = new ImgCut();
 	public static boolean saveflg = false;
 	
@@ -45,6 +47,7 @@ public class NewImage extends JDialog{
 	    if(filename != null) {
 	    	selectedFile = new File(directory, filename);
 			filename2= filename.substring(0, filename.lastIndexOf("."));// 選択されたファイル名);
+			
 	    }
 	}
 	
@@ -86,22 +89,12 @@ public class NewImage extends JDialog{
   		button.setBounds(10, 530, 100, 50);
   		button.addActionListener(new ActionListener() {
   			public void actionPerformed(ActionEvent e) {
+  				GameFrame.selectedLabel = filename2;
+  				Integer lastValue = Collections.max(GameFrame.imgMap2.values());
+  				GameFrame.imgMap2.put(filename2,lastValue+1); //プルダウンの選択肢に追加
   				ic.SplitImageAndSave(); //画像の分割と保存
-  				GameFrame.imgMap.add(filename2); //プルダウンの選択肢に追加
-  				//プルダウンのテキストファイルに書き込み
-  				int size = GameFrame.imgMap.size(); //現在の登録数を取得
-  				int count2 = 0; 
-  				try (BufferedWriter writer = new BufferedWriter(new FileWriter("pulldownData.txt"))) {
-  					for (String key : GameFrame.imgMap) {
-  						count2++;
-  						writer.write(key);
-  						if(count2 != size) { //最後の行には改行を入れない
-  							writer.newLine(); // 改行を追加
-  					}
-  					}
-  				 } catch (IOException e1) {
-  					 e1.printStackTrace();
-  				 }
+  				
+  				txtEdit();//プルダウンのテキストファイルに書き込み
   	           
   				frame.dispose(); //フレームを閉じる。
   				
@@ -125,5 +118,35 @@ public class NewImage extends JDialog{
   		
   		//フレームの表示
         frame.setVisible(true);  
+	}
+	
+	public void deleteImg(int imageNo) {
+		System.out.println(imageNo+"のフォルダを削除します。");
+		deleteFolder = new File("img/img" + imageNo );
+		for(File file : deleteFolder.listFiles()) {
+			System.out.println(file);
+			file.delete();
+		}
+		deleteFolder.delete();
+		
+		txtEdit();
+		
+	}
+	
+	private void txtEdit(){
+		//プルダウンのテキストファイルに書き込み
+		int size = GameFrame.imgMap2.size(); //現在の登録数を取得
+		int count2 = 0; 
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter("pulldownData.txt"))) {
+			for (String key : GameFrame.imgMap2.keySet()) {
+				count2++;
+				writer.write(key+","+Integer.valueOf(GameFrame.imgMap2.get(key)));
+				if(count2 != size) { //最後の行には改行を入れない
+					writer.newLine(); // 改行を追加
+			}
+			}
+		 } catch (IOException e1) {
+			 e1.printStackTrace();
+		 }
 	}
 }
